@@ -212,7 +212,7 @@ function App() {
     >
       <div className="game-container">
         <header>
-          <h1>Connections</h1>
+          <h1>Reverse Rainbow</h1>
           <h2>Drag words into rows to group them!</h2>
         </header>
 
@@ -252,15 +252,12 @@ function App() {
             id="pool-area"
             className="pool-area"
             style={{
-              display: 'flex',
-              flexWrap: 'wrap',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
               gap: '8px',
-              justifyContent: 'center',
+              width: '100%',
               maxWidth: '600px',
-              minHeight: '100px',
-              padding: '1rem',
-              border: '2px dashed #ddd',
-              borderRadius: '12px'
+              padding: '1rem 0 0 0',
             }}
           >
             <SortablePool words={poolState.map(id => getWord(id)).filter(Boolean)} onCardClick={handleCardClick} />
@@ -301,7 +298,7 @@ function SortablePool({ words, onCardClick }) {
   return (
     <div ref={setNodeRef} style={{ display: 'contents' }}>
       {words.map(w => (
-        <div key={w.id} style={{ width: '120px', height: '60px' }} onClick={() => onCardClick(w.id)}>
+        <div key={w.id} className="pool-slot" style={{ height: '64px', width: '100%' }} onClick={() => onCardClick(w.id)}>
           <WordCard id={w.id} text={w.text} category={w.category} />
         </div>
       ))}

@@ -13,8 +13,8 @@ export function WordCard({ id, text, category, isOverlay }) {
         opacity: isDragging ? 0.5 : 1,
         cursor: 'grab',
         backgroundColor: '#efece5',
-        padding: '1rem',
-        borderRadius: '12px',
+        padding: '0.25rem', // Tight padding
+        borderRadius: '8px',
         fontWeight: 'bold',
         textTransform: 'uppercase',
         userSelect: 'none',
@@ -25,7 +25,10 @@ export function WordCard({ id, text, category, isOverlay }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        touchAction: 'none' // Important for touch devices
+        touchAction: 'none', // Important for touch devices
+        fontSize: '0.7rem', // Ensure text fits
+        lineHeight: '1.1',
+        boxSizing: 'border-box'
     };
 
     return (

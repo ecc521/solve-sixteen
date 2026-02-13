@@ -28,15 +28,15 @@ app.post('/api/validate', (req, res) => {
     // Check if they all belong to the same category
     const categories = selectedWords.map(w => w.category);
     const allSame = categories.every(c => c === categories[0]);
-    
+
     // In a real app we'd look up by ID to prevent cheating, but here we trust the client sends full objects or we look them up.
     // Let's assume the client sends valid word objects or we re-fetch them. 
     // Actually, simpler to just return the category if it's a match.
-    
+
     if (allSame) {
         return res.json({ valid: true, category: categories[0], items: selectedWords });
     } else {
-         // check for "one away" logic could go here too
+        // check for "one away" logic could go here too
         return res.json({ valid: false });
     }
 });
@@ -44,3 +44,5 @@ app.post('/api/validate', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
+

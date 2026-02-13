@@ -14,13 +14,14 @@ export function Slot({ id, children, isOver, onClick }) {
             onClick={onClick}
             className={twMerge(
                 "slot",
-                "w-full h-20 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-400 transition-colors",
+                "w-full h-16 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-400 transition-colors",
                 isOver ? "bg-green-100 border-green-500" : ""
             )}
             style={{
-                minHeight: '80px',
+                height: '64px', // Force height to prevent collapse
                 backgroundColor: isOver ? '#e6f4ea' : (children ? 'transparent' : '#f0f0f0'),
-                border: children ? 'none' : '2px dashed #ccc'
+                border: children ? 'none' : '2px dashed #ccc',
+                boxSizing: 'border-box'
             }}
         >
             {children}
