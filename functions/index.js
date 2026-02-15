@@ -76,6 +76,7 @@ exports.getWords = functions.https.onRequest((req, res) => {
         const dd = String(today.getDate()).padStart(2, '0');
         const defaultDate = `${yyyy}-${mm}-${dd}`;
 
+        // Use the requested date or default to today
         const date = req.query.date || defaultDate;
 
         try {
@@ -97,6 +98,29 @@ exports.getWords = functions.https.onRequest((req, res) => {
             }
         } catch (error) {
             console.error('Error getting game:', error);
+            res.status(500).send('Internal Server Error');
+        }
+    });
+});
+
+exports.getAvailableDates = functions.https.onRequest((req, res) => {
+    cors(req, res, async () => {
+        try {
+            // Fetch all document IDs from 'games' collection
+            const snapshot = await db.collection('games').select().get();
+            const dates = snapshot.docs.map(doc => doc.id).sort().reverse();
+
+            // Ensure today is included if not present (might not have been scraped yet or failed)
+            // But getWords scrapes on demand, so maybe we should check if today is in the list?
+            // If the user selects today and it's not in the list, getWords will scrape it.
+            // So we might want to manually add today to the list if it's missing?
+            // Actually, let's just return what's in the DB. The frontend can default to "today" (local time)
+            // and if that date string isn't in this list, maybe add it or just handle it.
+            // Better yet: just return the DB list. The frontend can handle the logic of "Current Date".
+
+            res.json(dates);
+        } catch (error) {
+            console.error('Error getting available dates:', error);
             res.status(500).send('Internal Server Error');
         }
     });
