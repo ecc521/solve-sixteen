@@ -44,7 +44,7 @@ Solve Sixteen is a React-based web application designed for those who prefer to 
 
 The backend is built with Firebase Cloud Functions using Node.js 24 and TypeScript.
 
-See details in README.md in the functions subdirectory. 
+See [README.md](functions/README.md) in the functions subdirectory for more details. 
 
 ## Deployment
 
