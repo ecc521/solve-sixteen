@@ -4,6 +4,7 @@ import './styles/index.css';
 
 import Slot from './components/Slot';
 import WordCard from './components/WordCard';
+import { shuffleArray } from './utils';
 
 function App() {
   // words: All words definition match from server
@@ -64,7 +65,7 @@ function App() {
         setAllWords(data);
         // Initially all words are in the pool
         const ids = data.map(w => w.id);
-        const shuffled = [...ids].sort(() => Math.random() - 0.5);
+        const shuffled = shuffleArray(ids);
         setPoolState(shuffled);
         // Reset grid and solved groups
         setGridState(Array(16).fill(null));
@@ -176,6 +177,7 @@ function App() {
     // Disable local validation logic
     return;
 
+    /*
     // Gather words in grid
     // Usually Connections requires you to pick 4.
     // Here we have 16 slots.
@@ -239,6 +241,7 @@ function App() {
       setMessage("No valid groups in rows.");
       setTimeout(() => setMessage(''), 2000);
     }
+    */
   };
 
 
