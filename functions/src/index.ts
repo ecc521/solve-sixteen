@@ -94,6 +94,7 @@ export const scrapeDaily = onSchedule({
     schedule: "5 0 * * *",
     timeZone: "America/Chicago",
     region: "us-central1",
+    timeoutSeconds: 30,
 }, async (event) => {
     const today = new Date();
     const yyyy = today.getFullYear();
@@ -104,7 +105,7 @@ export const scrapeDaily = onSchedule({
     await scrapeAndStoreGame(dateString);
 });
 
-export const getWords = onRequest({ region: "us-central1" }, (req, res) => {
+export const getWords = onRequest({ region: "us-central1", timeoutSeconds: 10 }, (req, res) => {
     corsHandler(req, res, async () => {
         try {
             let date = req.query.date as string | undefined;
@@ -142,7 +143,7 @@ export const getWords = onRequest({ region: "us-central1" }, (req, res) => {
     });
 });
 
-export const getAvailableDates = onRequest({ region: "us-central1" }, (req, res) => {
+export const getAvailableDates = onRequest({ region: "us-central1", timeoutSeconds: 10 }, (req, res) => {
     corsHandler(req, res, async () => {
         try {
             // Fetch all document IDs from 'games' collection
