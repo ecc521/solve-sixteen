@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor, useDroppable } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
 import './styles/index.css';
 
 import Slot from './components/Slot';
@@ -28,7 +27,8 @@ function App() {
   );
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/words')
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/words';
+    fetch(apiUrl)
       .then(res => res.json())
       .then(data => {
         setAllWords(data);
@@ -36,7 +36,8 @@ function App() {
         const ids = data.map(w => w.id);
         const shuffled = [...ids].sort(() => Math.random() - 0.5);
         setPoolState(shuffled);
-      });
+      })
+      .catch(err => console.error("Failed to fetch words:", err));
   }, []);
 
   const getWord = (id) => allWords.find(w => w.id === id);
@@ -156,9 +157,6 @@ function App() {
 
     // Validate rows
     let foundGroup = false;
-    const newSolved = [...solvedGroups];
-    let newGrid = [...gridState];
-    let newPool = [...poolState]; // Shouldn't change if we just validate
 
     // Ideally we check if a row is a valid group
     // But wait, if I solve a group, it usually disappears or becomes a "Solved" card.
@@ -212,7 +210,7 @@ function App() {
     >
       <div className="game-container">
         <header>
-          <h1>Reverse Rainbow</h1>
+          <h1>Solve Sixteen</h1>
           <h2>Drag words into rows to group them!</h2>
         </header>
 
