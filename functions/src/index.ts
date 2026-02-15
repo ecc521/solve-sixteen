@@ -77,7 +77,20 @@ async function scrapeAndStoreGame(dateString: string): Promise<GameData | null> 
             };
 
             // Store in Firestore
-            await db.collection('games').doc(dateString).set(gameData);
+            const gameRef = db.collection('games').doc(dateString);
+            const aggRef = db.collection('aggregations').doc('available_dates');
+
+            await db.runTransaction(async (transaction) => {
+                const aggDoc = await transaction.get(aggRef);
+
+                transaction.set(gameRef, gameData);
+
+                if (aggDoc.exists) {
+                    transaction.update(aggRef, {
+                        dates: admin.firestore.FieldValue.arrayUnion(dateString)
+                    });
+                }
+            });
             console.log(`Successfully stored game for ${dateString}`);
             return gameData;
         } else {
@@ -146,9 +159,24 @@ export const getWords = onRequest({ region: "us-central1", timeoutSeconds: 10 },
 export const getAvailableDates = onRequest({ region: "us-central1", timeoutSeconds: 10 }, (req, res) => {
     corsHandler(req, res, async () => {
         try {
-            // Fetch all document IDs from 'games' collection
-            const snapshot = await db.collection('games').select().get();
-            const dates = snapshot.docs.map(doc => doc.id).sort().reverse();
+            const aggRef = db.collection('aggregations').doc('available_dates');
+            const aggDoc = await aggRef.get();
+
+            let dates: string[] = [];
+
+            if (aggDoc.exists) {
+                dates = aggDoc.data()?.dates || [];
+            } else {
+                // Fallback: Fetch all document IDs from 'games' collection
+                const snapshot = await db.collection('games').select().get();
+                dates = snapshot.docs.map(doc => doc.id).sort().reverse();
+
+                // Rebuild cache
+                await aggRef.set({ dates });
+            }
+
+            // Ensure sorting as arrayUnion doesn't guarantee order
+            dates.sort().reverse();
 
             res.json(dates);
         } catch (error) {
