@@ -5,6 +5,7 @@ import './styles/index.css';
 import Slot from './components/Slot';
 import WordCard from './components/WordCard';
 import { shuffleArray } from './utils';
+import faviconSvg from './assets/favicon.svg';
 
 function App() {
   // words: All words definition match from server
@@ -32,6 +33,17 @@ function App() {
   // Simplified API Base URL logic
   // Default to local emulator if env var is missing
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/solve-sixteen/us-central1';
+
+  useEffect(() => {
+    // Update favicon
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = faviconSvg;
+  }, []);
 
   useEffect(() => {
     // Construct URL for available dates
@@ -187,7 +199,10 @@ function App() {
     >
       <div className="game-container">
         <header>
-          <h1>Solve Sixteen</h1>
+          <h1 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+            <img src={faviconSvg} alt="Solve Sixteen Logo" style={{ height: '1em' }} />
+            Solve Sixteen
+          </h1>
           <h2>Drag words into rows to group them!</h2>
           <div style={{ margin: '10px 0' }}>
             <label htmlFor="date-select" style={{ marginRight: '10px' }}>Select Date:</label>
