@@ -1,4 +1,5 @@
-import * as functions from "firebase-functions/v1";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { onRequest } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import axios from "axios";
 import cors from "cors";
@@ -89,19 +90,21 @@ async function scrapeAndStoreGame(dateString: string): Promise<GameData | null> 
     }
 }
 
-export const scrapeDaily = functions.pubsub.schedule('0 0 * * *')
-    .timeZone('America/New_York') // Eastern Time
-    .onRun(async (context: functions.EventContext) => {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        const dateString = `${yyyy}-${mm}-${dd}`;
+export const scrapeDaily = onSchedule({
+    schedule: "5 0 * * *",
+    timeZone: "America/Chicago",
+    region: "us-central1",
+}, async (event) => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const dateString = `${yyyy}-${mm}-${dd}`;
 
-        await scrapeAndStoreGame(dateString);
-    });
+    await scrapeAndStoreGame(dateString);
+});
 
-export const getWords = functions.https.onRequest((req, res) => {
+export const getWords = onRequest({ region: "us-central1" }, (req, res) => {
     corsHandler(req, res, async () => {
         try {
             let date = req.query.date as string | undefined;
@@ -139,7 +142,7 @@ export const getWords = functions.https.onRequest((req, res) => {
     });
 });
 
-export const getAvailableDates = functions.https.onRequest((req, res) => {
+export const getAvailableDates = onRequest({ region: "us-central1" }, (req, res) => {
     corsHandler(req, res, async () => {
         try {
             // Fetch all document IDs from 'games' collection
