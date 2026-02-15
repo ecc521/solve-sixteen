@@ -181,7 +181,8 @@ function App() {
         setSolvedGroups(prev => {
           // Avoid duplicates
           if (prev.some(g => g.category === categories[0])) return prev;
-          return [...prev, { category: categories[0], items: rowWords.map(w => w.text) }];
+          const difficulty = rowWords[0].difficulty;
+          return [...prev, { category: categories[0], items: rowWords.map(w => w.text), difficulty }];
         });
 
         // Remove from grid
@@ -219,7 +220,7 @@ function App() {
         {/* Solved Groups */}
         <div className="solved-area" style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {solvedGroups.map((group, i) => (
-            <div key={i} className="solved-row" style={{ backgroundColor: getCategoryColor(group.category) }}>
+            <div key={i} className="solved-row" style={{ backgroundColor: getCategoryColor(group.difficulty || group.category) }}>
               <div className="solved-title">{group.category}</div>
               <div className="solved-words">{group.items.join(', ')}</div>
             </div>
@@ -306,10 +307,19 @@ function SortablePool({ words, onCardClick }) {
   );
 }
 
-function getCategoryColor(cat) {
-  if (cat === 'DOWNRIGHT') return 'var(--yellow-bg)';
-  if (cat === 'PENNANT') return 'var(--green-bg)';
-  if (cat === 'CIGARETTE BRANDS') return 'var(--blue-bg)';
+function getCategoryColor(val) {
+  // Check based on difficulty first
+  if (val === 'easy') return 'var(--yellow-bg)';
+  if (val === 'medium') return 'var(--green-bg)';
+  if (val === 'hard') return 'var(--blue-bg)';
+  if (val === 'tricky') return 'var(--purple-bg)';
+
+  // Fallback for old data or specific category names
+  if (val === 'DOWNRIGHT') return 'var(--yellow-bg)';
+  if (val === 'PENNANT') return 'var(--green-bg)';
+  if (val === 'CIGARETTE BRANDS') return 'var(--blue-bg)';
+
+  // Default fallback
   return 'var(--purple-bg)';
 }
 

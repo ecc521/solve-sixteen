@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const { words } = require('./data');
+let { words } = require('./data');
+const { getLatestConnections } = require('./dist/scraper');
 
 const app = express();
 const PORT = 3000;
@@ -41,8 +42,21 @@ app.post('/api/validate', (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Server running on http://localhost:${PORT}`);
+
+    try {
+        console.log('Fetching latest NYT Connections data...');
+        const latestWords = await getLatestConnections();
+        if (latestWords && latestWords.length > 0) {
+            words = latestWords;
+            console.log('Successfully updated game data from NYT!');
+        } else {
+            console.log('Using default game data.');
+        }
+    } catch (error) {
+        console.error('Error updating game data:', error);
+    }
 });
 
 
