@@ -104,17 +104,6 @@ export const getWords = functions.https.onRequest((req, res) => {
                 const doc = await db.collection('games').doc(date).get();
                 if (doc.exists) {
                     gameData = doc.data() as GameData;
-                } else {
-                    // Try to scrape on demand if it's today (fallback)
-                    const today = new Date();
-                    const yyyy = today.getFullYear();
-                    const mm = String(today.getMonth() + 1).padStart(2, '0');
-                    const dd = String(today.getDate()).padStart(2, '0');
-                    const todayStr = `${yyyy}-${mm}-${dd}`;
-
-                    if (date === todayStr) {
-                         gameData = await scrapeAndStoreGame(date);
-                    }
                 }
             } else {
                 // If no date requested, get the most recent game
@@ -127,14 +116,6 @@ export const getWords = functions.https.onRequest((req, res) => {
                     gameData = snapshot.docs[0].data() as GameData;
                     // Update date for logging/reference - though not strictly used further down
                     date = snapshot.docs[0].id;
-                } else {
-                    // Database empty? Fallback to scraping today
-                    const today = new Date();
-                    const yyyy = today.getFullYear();
-                    const mm = String(today.getMonth() + 1).padStart(2, '0');
-                    const dd = String(today.getDate()).padStart(2, '0');
-                    const todayStr = `${yyyy}-${mm}-${dd}`;
-                    gameData = await scrapeAndStoreGame(todayStr);
                 }
             }
 
