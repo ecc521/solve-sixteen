@@ -120,8 +120,7 @@ export const getWords = functions.https.onRequest((req, res) => {
             }
 
             if (gameData) {
-                const shuffled = [...gameData.words].sort(() => Math.random() - 0.5);
-                res.json(shuffled);
+                res.json(gameData.words);
             } else {
                 res.status(404).send('Game not found');
             }
