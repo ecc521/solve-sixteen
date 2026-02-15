@@ -314,11 +314,6 @@ function getCategoryColor(val) {
   if (val === 'hard') return 'var(--blue-bg)';
   if (val === 'tricky') return 'var(--purple-bg)';
 
-  // Fallback for old data or specific category names
-  if (val === 'DOWNRIGHT') return 'var(--yellow-bg)';
-  if (val === 'PENNANT') return 'var(--green-bg)';
-  if (val === 'CIGARETTE BRANDS') return 'var(--blue-bg)';
-
   // Default fallback
   return 'var(--purple-bg)';
 }
