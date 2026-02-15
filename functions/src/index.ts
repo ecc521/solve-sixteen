@@ -14,7 +14,9 @@ const corsHandler = cors({
   origin: allowedOrigins,
 });
 
-admin.initializeApp();
+admin.initializeApp({
+  projectId: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || "solve-sixteen",
+});
 
 // Create a reference to the Firestore database
 const db = admin.firestore();
@@ -44,6 +46,11 @@ interface NYTResponse {
 
 // Helper function to scrape and store game data
 async function scrapeAndStoreGame(dateString: string): Promise<GameData | null> {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        console.error(`Invalid date format: ${dateString}`);
+        return null;
+    }
+
     const url = `https://www.nytimes.com/svc/connections/v2/${dateString}.json`;
     console.log(`Scraping game for ${dateString} from ${url}`);
 
