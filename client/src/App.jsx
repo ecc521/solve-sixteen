@@ -35,17 +35,6 @@ function App() {
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/solve-sixteen/us-central1';
 
   useEffect(() => {
-    // Update favicon
-    let link = document.querySelector("link[rel~='icon']");
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
-      document.head.appendChild(link);
-    }
-    link.href = faviconSvg;
-  }, []);
-
-  useEffect(() => {
     // Construct URL for available dates
     const datesUrl = `${apiBaseUrl}/getAvailableDates`;
 
