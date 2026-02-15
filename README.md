@@ -2,7 +2,7 @@
 
 Solve Sixteen is a React-based web application designed for those who prefer to play NYT Connections in hard mode - solving all 4 rows at once. 
 
-- Due to copyright constraints, this project does NOT validate your picks. It is purely intended as a thought organier. 
+- Due to copyright constraints, this project does NOT validate your picks. It is purely intended as a thought organier. You must visit the official NYT website to check your answers and see category names. 
 
 ## Development
 
