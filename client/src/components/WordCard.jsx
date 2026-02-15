@@ -1,15 +1,13 @@
 import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
 
 export function WordCard({ id, text, category, isOverlay }) {
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: id,
         data: { text, category }
     });
 
     const style = {
-        transform: CSS.Translate.toString(transform),
         opacity: isDragging ? 0.5 : 1,
         cursor: 'grab',
         backgroundColor: '#efece5',
