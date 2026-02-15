@@ -188,7 +188,7 @@ function App() {
       <div className="game-container">
         <header>
           <h1>Solve Sixteen</h1>
-          <h2>Drag words into rows to group them!</h2>
+          <h2>Click or drag words into rows!</h2>
           <div style={{ margin: '10px 0' }}>
             <label htmlFor="date-select" style={{ marginRight: '10px' }}>Select Date:</label>
             <select
