@@ -28,22 +28,13 @@ function App() {
     useSensor(TouchSensor)
   );
 
+  // Simplified API Base URL logic
+  // Default to local emulator if env var is missing
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/solve-sixteen/us-central1';
+
   useEffect(() => {
-    const baseApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/words';
-    // Construct URL for available dates.
-    // If baseApiUrl ends in 'words' or 'getWords', replace it with 'getAvailableDates'.
-    // Otherwise append it (though that's risky).
-    let datesUrl = baseApiUrl;
-    if (datesUrl.endsWith('/words')) {
-      datesUrl = datesUrl.replace(/\/words$/, '/getAvailableDates');
-    } else if (datesUrl.endsWith('/getWords')) {
-      datesUrl = datesUrl.replace(/\/getWords$/, '/getAvailableDates');
-    } else {
-      // Fallback: try to guess or just append if it looks like a base
-      // If it's a raw base, maybe just append. But usually VITE_API_URL is the full endpoint for words.
-      // Let's assume standard replacement.
-      datesUrl = datesUrl.replace(/words$/i, 'getAvailableDates');
-    }
+    // Construct URL for available dates
+    const datesUrl = `${apiBaseUrl}/getAvailableDates`;
 
     fetch(datesUrl)
       .then(res => res.json())
@@ -61,9 +52,11 @@ function App() {
   useEffect(() => {
     if (!selectedDate && availableDates.length > 0) return; // Wait for selection if we have dates
 
-    const baseApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/words';
-    // Append date parameter if selected
-    const url = selectedDate ? `${baseApiUrl}?date=${selectedDate}` : baseApiUrl;
+    // Construct URL for words
+    let url = `${apiBaseUrl}/getWords`;
+    if (selectedDate) {
+      url += `?date=${selectedDate}`;
+    }
 
     fetch(url)
       .then(res => res.json())
