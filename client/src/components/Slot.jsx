@@ -2,8 +2,8 @@ import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { twMerge } from 'tailwind-merge';
 
-export function Slot({ id, children, isOver, onClick }) {
-    const { setNodeRef } = useDroppable({
+export function Slot({ id, children, onClick }) {
+    const { setNodeRef, isOver } = useDroppable({
         id: id,
     });
 
