@@ -3,7 +3,15 @@ import * as admin from "firebase-admin";
 import axios from "axios";
 import cors from "cors";
 
-const corsHandler = cors({ origin: true });
+const allowedOrigins = [
+  "https://ecc521.github.io",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
+
+const corsHandler = cors({
+  origin: allowedOrigins,
+});
 
 admin.initializeApp();
 
