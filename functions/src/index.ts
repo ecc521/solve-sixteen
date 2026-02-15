@@ -112,6 +112,12 @@ export const getWords = onRequest({ region: "us-central1", timeoutSeconds: 10 },
             let gameData: GameData | null | undefined = null;
 
             if (date) {
+                // Validate date format
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                    res.status(400).send('Invalid date format. Expected YYYY-MM-DD');
+                    return;
+                }
+
                 // If a specific date is requested, try to fetch it
                 const doc = await db.collection('games').doc(date).get();
                 if (doc.exists) {
