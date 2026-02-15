@@ -70,24 +70,46 @@ exports.scrapeDaily = functions.pubsub.schedule('0 0 * * *')
 
 exports.getWords = functions.https.onRequest((req, res) => {
     cors(req, res, async () => {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        const defaultDate = `${yyyy}-${mm}-${dd}`;
-
-        // Use the requested date or default to today
-        const date = req.query.date || defaultDate;
-
         try {
-            let doc = await db.collection('games').doc(date).get();
+            let date = req.query.date;
             let gameData = null;
 
-            if (doc.exists) {
-                gameData = doc.data();
-            } else if (date === defaultDate) {
-                // If not found and asking for today, try scraping on demand
-                gameData = await scrapeAndStoreGame(date);
+            if (date) {
+                // If a specific date is requested, try to fetch it
+                const doc = await db.collection('games').doc(date).get();
+                if (doc.exists) {
+                    gameData = doc.data();
+                } else {
+                    // Try to scrape on demand if it's today (fallback)
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    const todayStr = `${yyyy}-${mm}-${dd}`;
+
+                    if (date === todayStr) {
+                         gameData = await scrapeAndStoreGame(date);
+                    }
+                }
+            } else {
+                // If no date requested, get the most recent game
+                const snapshot = await db.collection('games')
+                    .orderBy('date', 'desc') // Assuming 'date' field exists and is sortable, or sort by ID if IDs are dates
+                    .limit(1)
+                    .get();
+
+                if (!snapshot.empty) {
+                    gameData = snapshot.docs[0].data();
+                    date = snapshot.docs[0].id; // Update date for logging/reference
+                } else {
+                    // Database empty? Fallback to scraping today
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    const todayStr = `${yyyy}-${mm}-${dd}`;
+                    gameData = await scrapeAndStoreGame(todayStr);
+                }
             }
 
             if (gameData) {
@@ -109,14 +131,6 @@ exports.getAvailableDates = functions.https.onRequest((req, res) => {
             // Fetch all document IDs from 'games' collection
             const snapshot = await db.collection('games').select().get();
             const dates = snapshot.docs.map(doc => doc.id).sort().reverse();
-
-            // Ensure today is included if not present (might not have been scraped yet or failed)
-            // But getWords scrapes on demand, so maybe we should check if today is in the list?
-            // If the user selects today and it's not in the list, getWords will scrape it.
-            // So we might want to manually add today to the list if it's missing?
-            // Actually, let's just return what's in the DB. The frontend can default to "today" (local time)
-            // and if that date string isn't in this list, maybe add it or just handle it.
-            // Better yet: just return the DB list. The frontend can handle the logic of "Current Date".
 
             res.json(dates);
         } catch (error) {
