@@ -1,26 +1,51 @@
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
-const axios = require("axios");
-const cors = require("cors")({origin: true});
+import * as functions from "firebase-functions/v1";
+import * as admin from "firebase-admin";
+import axios from "axios";
+import cors from "cors";
+
+const corsHandler = cors({ origin: true });
 
 admin.initializeApp();
 
 // Create a reference to the Firestore database
 const db = admin.firestore();
 
+interface Word {
+    id: string;
+    text: string;
+    category: string;
+    difficulty: string;
+}
+
+interface GameData {
+    date: string;
+    words: Word[];
+    originalData: any;
+}
+
+interface NYTCategory {
+    title: string;
+    cards: { content: string }[];
+}
+
+interface NYTResponse {
+    status: string;
+    categories: NYTCategory[];
+}
+
 // Helper function to scrape and store game data
-async function scrapeAndStoreGame(dateString) {
+async function scrapeAndStoreGame(dateString: string): Promise<GameData | null> {
     const url = `https://www.nytimes.com/svc/connections/v2/${dateString}.json`;
     console.log(`Scraping game for ${dateString} from ${url}`);
 
     try {
-        const response = await axios.get(url);
+        const response = await axios.get<NYTResponse>(url);
         const data = response.data;
 
         if (data.status === 'OK') {
             const categories = data.categories;
-            const transformedWords = [];
-            const diffMap = { 0: 'easy', 1: 'medium', 2: 'hard', 3: 'tricky' };
+            const transformedWords: Word[] = [];
+            const diffMap: { [key: number]: string } = { 0: 'easy', 1: 'medium', 2: 'hard', 3: 'tricky' };
 
             categories.forEach((cat, index) => {
                 const difficulty = diffMap[index] || 'unknown';
@@ -36,7 +61,7 @@ async function scrapeAndStoreGame(dateString) {
                 });
             });
 
-            const gameData = {
+            const gameData: GameData = {
                 date: dateString,
                 words: transformedWords,
                 originalData: data
@@ -56,9 +81,9 @@ async function scrapeAndStoreGame(dateString) {
     }
 }
 
-exports.scrapeDaily = functions.pubsub.schedule('0 0 * * *')
+export const scrapeDaily = functions.pubsub.schedule('0 0 * * *')
     .timeZone('America/New_York') // Eastern Time
-    .onRun(async (context) => {
+    .onRun(async (context: functions.EventContext) => {
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -68,17 +93,17 @@ exports.scrapeDaily = functions.pubsub.schedule('0 0 * * *')
         await scrapeAndStoreGame(dateString);
     });
 
-exports.getWords = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+export const getWords = functions.https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
         try {
-            let date = req.query.date;
-            let gameData = null;
+            let date = req.query.date as string | undefined;
+            let gameData: GameData | null | undefined = null;
 
             if (date) {
                 // If a specific date is requested, try to fetch it
                 const doc = await db.collection('games').doc(date).get();
                 if (doc.exists) {
-                    gameData = doc.data();
+                    gameData = doc.data() as GameData;
                 } else {
                     // Try to scrape on demand if it's today (fallback)
                     const today = new Date();
@@ -99,8 +124,9 @@ exports.getWords = functions.https.onRequest((req, res) => {
                     .get();
 
                 if (!snapshot.empty) {
-                    gameData = snapshot.docs[0].data();
-                    date = snapshot.docs[0].id; // Update date for logging/reference
+                    gameData = snapshot.docs[0].data() as GameData;
+                    // Update date for logging/reference - though not strictly used further down
+                    date = snapshot.docs[0].id;
                 } else {
                     // Database empty? Fallback to scraping today
                     const today = new Date();
@@ -125,8 +151,8 @@ exports.getWords = functions.https.onRequest((req, res) => {
     });
 });
 
-exports.getAvailableDates = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+export const getAvailableDates = functions.https.onRequest((req, res) => {
+    corsHandler(req, res, async () => {
         try {
             // Fetch all document IDs from 'games' collection
             const snapshot = await db.collection('games').select().get();
