@@ -175,7 +175,7 @@ export const getAvailableDates = onRequest({ region: "us-central1", timeoutSecon
                 await aggRef.set({ dates });
             }
 
-            // Ensure sorting as arrayUnion doesn't guarantee order
+            // Explicitly sort to guarantee reverse chronological order, as arrayUnion order is implementation-dependent
             dates.sort().reverse();
 
             res.json(dates);
