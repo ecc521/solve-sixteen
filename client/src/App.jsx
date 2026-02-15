@@ -192,7 +192,7 @@ function App() {
             <img src={faviconSvg} alt="Solve Sixteen Logo" style={{ height: '1em' }} />
             Solve Sixteen
           </h1>
-          <h2>Drag words into rows to group them!</h2>
+          <h2>Click or drag words into rows!</h2>
           <div style={{ margin: '10px 0' }}>
             <label htmlFor="date-select" style={{ marginRight: '10px' }}>Select Date:</label>
             <select
