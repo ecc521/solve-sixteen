@@ -171,6 +171,8 @@ function App() {
 
   const handleSubmit = async () => {
     // Open NYT Connections in a new tab
+    // Validating locally would likely be Copyright infringement. As-is, users are still required to visit the NYT website,
+    // which minimizes any possible business impact. 
     window.open('https://www.nytimes.com/games/connections', '_blank');
     setMessage("You can verify the rows on the New York Times");
   };
