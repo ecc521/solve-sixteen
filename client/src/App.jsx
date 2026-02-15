@@ -30,7 +30,6 @@ function App() {
     useSensor(TouchSensor)
   );
 
-  // Simplified API Base URL logic
   // Default to local emulator if env var is missing
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/solve-sixteen/us-central1';
 
