@@ -13,7 +13,7 @@ Solve Sixteen is a React-based web application inspired by NYT Connections. It a
 
 ### Prerequisites
 
--   Node.js (v18+)
+-   Node.js (v24+)
 -   Firebase CLI (`npm install -g firebase-tools`)
 
 ### Local Setup
@@ -31,7 +31,7 @@ Solve Sixteen is a React-based web application inspired by NYT Connections. It a
     ```
 
 3.  **Start the Firebase Emulators:**
-    This will start the local backend functions.
+    This will automatically build the TypeScript functions and start the local backend.
     ```bash
     firebase emulators:start
     ```
@@ -44,6 +44,31 @@ Solve Sixteen is a React-based web application inspired by NYT Connections. It a
     npm run dev
     ```
      The application will be available at `http://localhost:5173`. By default, it is configured to talk to the local Firebase Emulators.
+
+## Firebase Functions
+
+The backend is built with Firebase Cloud Functions using Node.js 24 and TypeScript.
+
+### Building Functions
+
+To compile the TypeScript code manually:
+
+```bash
+cd functions
+npm run build
+```
+
+This generates the JavaScript output in the `functions/lib` directory.
+
+### Deploying Functions
+
+To deploy the functions to your Firebase project:
+
+```bash
+firebase deploy --only functions
+```
+
+Note: The deployment process is configured to automatically run `npm run build` before uploading the code, ensuring the latest changes are always deployed.
 
 ## Deployment
 
