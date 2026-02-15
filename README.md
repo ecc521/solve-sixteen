@@ -1,13 +1,8 @@
 # Solve Sixteen
 
-Solve Sixteen is a React-based web application inspired by NYT Connections. It allows users to group words into categories by dragging and dropping them into rows.
+Solve Sixteen is a React-based web application designed for those who prefer to play NYT Connections in hard mode - solving all 4 rows at once. 
 
-## Features
-
--   **Drag and Drop Interface:** Organize words into 4 rows of 4.
--   **Daily Puzzles:** Play puzzles based on specific dates.
--   **NYT Integration:** Submit your groupings to the official NYT Connections game for verification.
--   **Firebase Backend:** Uses Cloud Functions to fetch puzzle data.
+- Due to copyright constraints, this project does NOT validate your picks. It is purely intended as a thought organier. 
 
 ## Development
 
