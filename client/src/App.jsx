@@ -20,6 +20,8 @@ function App() {
 
   const [activeId, setActiveId] = useState(null);
   const [message, setMessage] = useState('');
+  const [availableDates, setAvailableDates] = useState([]);
+  const [selectedDate, setSelectedDate] = useState('');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -27,8 +29,43 @@ function App() {
   );
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/words';
-    fetch(apiUrl)
+    const baseApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/words';
+    // Construct URL for available dates.
+    // If baseApiUrl ends in 'words' or 'getWords', replace it with 'getAvailableDates'.
+    // Otherwise append it (though that's risky).
+    let datesUrl = baseApiUrl;
+    if (datesUrl.endsWith('/words')) {
+      datesUrl = datesUrl.replace(/\/words$/, '/getAvailableDates');
+    } else if (datesUrl.endsWith('/getWords')) {
+      datesUrl = datesUrl.replace(/\/getWords$/, '/getAvailableDates');
+    } else {
+      // Fallback: try to guess or just append if it looks like a base
+      // If it's a raw base, maybe just append. But usually VITE_API_URL is the full endpoint for words.
+      // Let's assume standard replacement.
+      datesUrl = datesUrl.replace(/words$/i, 'getAvailableDates');
+    }
+
+    fetch(datesUrl)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setAvailableDates(data);
+          if (data.length > 0) {
+            setSelectedDate(data[0]); // Default to most recent
+          }
+        }
+      })
+      .catch(err => console.error("Failed to fetch available dates:", err));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedDate && availableDates.length > 0) return; // Wait for selection if we have dates
+
+    const baseApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/words';
+    // Append date parameter if selected
+    const url = selectedDate ? `${baseApiUrl}?date=${selectedDate}` : baseApiUrl;
+
+    fetch(url)
       .then(res => res.json())
       .then(data => {
         setAllWords(data);
@@ -36,9 +73,13 @@ function App() {
         const ids = data.map(w => w.id);
         const shuffled = [...ids].sort(() => Math.random() - 0.5);
         setPoolState(shuffled);
+        // Reset grid and solved groups
+        setGridState(Array(16).fill(null));
+        setSolvedGroups([]);
+        setMessage('');
       })
       .catch(err => console.error("Failed to fetch words:", err));
-  }, []);
+  }, [selectedDate]);
 
   const getWord = (id) => allWords.find(w => w.id === id);
 
@@ -135,6 +176,13 @@ function App() {
   };
 
   const handleSubmit = async () => {
+    // Open NYT Connections in a new tab
+    window.open('https://www.nytimes.com/games/connections', '_blank');
+    setMessage("You can verify the rows on the New York Times");
+
+    // Disable local validation logic
+    return;
+
     // Gather words in grid
     // Usually Connections requires you to pick 4.
     // Here we have 16 slots.
@@ -212,6 +260,20 @@ function App() {
         <header>
           <h1>Solve Sixteen</h1>
           <h2>Drag words into rows to group them!</h2>
+          <div style={{ margin: '10px 0' }}>
+            <label htmlFor="date-select" style={{ marginRight: '10px' }}>Select Date:</label>
+            <select
+              id="date-select"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              disabled={availableDates.length === 0}
+            >
+              {availableDates.length === 0 && <option>Loading dates...</option>}
+              {availableDates.map(date => (
+                <option key={date} value={date}>{date}</option>
+              ))}
+            </select>
+          </div>
         </header>
 
         {/* Solved Groups */}
