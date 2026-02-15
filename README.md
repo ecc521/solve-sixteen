@@ -15,7 +15,7 @@ Solve Sixteen is a React-based web application designed for those who prefer to 
 
 1.  **Clone the repository:**
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/ecc521/solve-sixteen.git
     cd solve-sixteen
     ```
 
@@ -44,26 +44,7 @@ Solve Sixteen is a React-based web application designed for those who prefer to 
 
 The backend is built with Firebase Cloud Functions using Node.js 24 and TypeScript.
 
-### Building Functions
-
-To compile the TypeScript code manually:
-
-```bash
-cd functions
-npm run build
-```
-
-This generates the JavaScript output in the `functions/lib` directory.
-
-### Deploying Functions
-
-To deploy the functions to your Firebase project:
-
-```bash
-firebase deploy --only functions
-```
-
-Note: The deployment process is configured to automatically run `npm run build` before uploading the code, ensuring the latest changes are always deployed.
+See details in README.md in the functions subdirectory. 
 
 ## Deployment
 
