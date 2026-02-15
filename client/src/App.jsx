@@ -28,7 +28,7 @@ function App() {
   );
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/words')
+    fetch('/api/words')
       .then(res => res.json())
       .then(data => {
         setAllWords(data);
