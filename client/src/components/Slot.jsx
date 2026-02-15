@@ -1,6 +1,5 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export function Slot({ id, children, isOver, onClick }) {
