@@ -96,6 +96,17 @@ describe('getWords', () => {
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.send).toHaveBeenCalledWith('Game not found');
     });
+
+    test('should return 400 for invalid date format', async () => {
+        req.query.date = 'invalid-date';
+
+        (getWords as any)(req, res);
+
+        await waitForResponse(res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.send).toHaveBeenCalledWith('Invalid date format. Expected YYYY-MM-DD');
+    });
 });
 
 async function waitForResponse(res: any) {
