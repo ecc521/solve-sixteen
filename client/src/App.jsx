@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor, useDroppable } from '@dnd-kit/core';
+import { doc, getDoc } from "firebase/firestore";
 import './styles/index.css';
 
+import { db } from './firebase';
 import Slot from './components/Slot';
 import WordCard from './components/WordCard';
 import { shuffleArray } from './utils';
@@ -30,49 +32,63 @@ function App() {
     useSensor(TouchSensor)
   );
 
-  // Default to local emulator if env var is missing
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/solve-sixteen/us-central1';
-
   useEffect(() => {
-    // Construct URL for available dates
-    const datesUrl = `${apiBaseUrl}/getAvailableDates`;
+    // Fetch available dates from Firestore
+    async function fetchDates() {
+      try {
+        const docRef = doc(db, "aggregations", "available_dates");
+        const docSnap = await getDoc(docRef);
 
-    fetch(datesUrl)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
+        if (docSnap.exists()) {
+          const data = docSnap.data().dates || [];
+          // Sort reverse chronological
+          data.sort().reverse();
           setAvailableDates(data);
           if (data.length > 0) {
             setSelectedDate(data[0]); // Default to most recent
           }
+        } else {
+          console.error("No available dates found.");
         }
-      })
-      .catch(err => console.error("Failed to fetch available dates:", err));
+      } catch (error) {
+        console.error("Failed to fetch available dates:", error);
+      }
+    }
+    fetchDates();
   }, []);
 
   useEffect(() => {
-    if (!selectedDate && availableDates.length > 0) return; // Wait for selection if we have dates
+    if (!selectedDate) return;
 
-    // Construct URL for words
-    let url = `${apiBaseUrl}/getWords`;
-    if (selectedDate) {
-      url += `?date=${selectedDate}`;
+    // Fetch words for selected date from Firestore
+    async function fetchGame() {
+      try {
+        const docRef = doc(db, "games", selectedDate);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const gameData = docSnap.data();
+          const words = gameData.words || [];
+          setAllWords(words);
+
+          // Initially all words are in the pool
+          const ids = words.map(w => w.id);
+          const shuffled = shuffleArray(ids);
+          setPoolState(shuffled);
+          // Reset grid and solved groups
+          setGridState(Array(16).fill(null));
+          setSolvedGroups([]);
+          setMessage('');
+        } else {
+          console.error("Game not found for date:", selectedDate);
+          setAllWords([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch words:", error);
+      }
     }
 
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        setAllWords(data);
-        // Initially all words are in the pool
-        const ids = data.map(w => w.id);
-        const shuffled = shuffleArray(ids);
-        setPoolState(shuffled);
-        // Reset grid and solved groups
-        setGridState(Array(16).fill(null));
-        setSolvedGroups([]);
-        setMessage('');
-      })
-      .catch(err => console.error("Failed to fetch words:", err));
+    fetchGame();
   }, [selectedDate]);
 
   const getWord = (id) => allWords.find(w => w.id === id);
