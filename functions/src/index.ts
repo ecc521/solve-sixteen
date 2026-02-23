@@ -30,6 +30,8 @@ interface NYTResponse {
     categories: NYTCategory[];
 }
 
+const DIFF_MAP: { [key: number]: string } = { 0: 'easy', 1: 'medium', 2: 'hard', 3: 'tricky' };
+
 // Helper function to scrape and store game data
 async function scrapeAndStoreGame(dateString: string): Promise<GameData | null> {
     const url = `https://www.nytimes.com/svc/connections/v2/${dateString}.json`;
@@ -42,10 +44,9 @@ async function scrapeAndStoreGame(dateString: string): Promise<GameData | null> 
         if (data.status === 'OK') {
             const categories = data.categories;
             const transformedWords: Word[] = [];
-            const diffMap: { [key: number]: string } = { 0: 'easy', 1: 'medium', 2: 'hard', 3: 'tricky' };
 
             categories.forEach((cat, index) => {
-                const difficulty = diffMap[index] || 'unknown';
+                const difficulty = DIFF_MAP[index] || 'unknown';
                 const categoryName = cat.title;
 
                 cat.cards.forEach((card, cardIndex) => {
