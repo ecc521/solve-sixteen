@@ -25,14 +25,20 @@ Solve Sixteen is a React-based web application designed for those who prefer to 
     cd ../functions && npm install
     ```
 
-3.  **Start the Firebase Emulators:**
+3.  **Configure Environment Variables:**
+    In the `client/` directory, create a `.env` file based on `.env.example` and fill in your Firebase configuration:
+    ```bash
+    cp client/.env.example client/.env
+    ```
+
+4.  **Start the Firebase Emulators:**
     This will automatically build the TypeScript functions and start the local backend.
     ```bash
     firebase emulators:start
     ```
     *Note: The functions emulator typically runs on `http://localhost:5001`.*
 
-4.  **Start the Frontend:**
+5.  **Start the Frontend:**
     In a new terminal window:
     ```bash
     cd client
@@ -50,16 +56,22 @@ See [README.md](functions/README.md) in the functions subdirectory for more deta
 
 The frontend is deployed to GitHub Pages via a GitHub Actions workflow.
 
-### API Configuration
+### Firebase Configuration
 
-To ensure the production app can communicate with your Firebase Functions, you must set up a repository secret.
+To ensure the production app can communicate with Firebase, you must set up repository secrets for the build process.
 
 1.  Go to your GitHub Repository.
 2.  Navigate to **Settings** > **Secrets and variables** > **Actions**.
-3.  Click **New repository secret**.
-4.  **Name:** `VITE_API_BASE_URL`
-5.  **Value:** The base URL of your deployed Firebase Functions.
-    *   Example: `https://us-central1-<your-project-id>.cloudfunctions.net`
-    *   *Do not include a trailing slash or specific endpoint paths like `/getWords`.*
+3.  Click **New repository secret** for each of the following:
 
-This secret is injected into the build process by the `.github/workflows/deploy-client.yml` workflow.
+| Secret Name | Description |
+| ----------- | ----------- |
+| `VITE_FIREBASE_API_KEY` | Your Firebase Web API Key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Your Firebase Auth Domain |
+| `VITE_FIREBASE_PROJECT_ID` | Your Firebase Project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Your Firebase Storage Bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Your Firebase Messaging Sender ID |
+| `VITE_FIREBASE_APP_ID` | Your Firebase App ID |
+| `VITE_FIREBASE_MEASUREMENT_ID` | Your Firebase Measurement ID |
+
+These secrets are injected into the build process by the `.github/workflows/deploy-client.yml` workflow.
