@@ -1,0 +1,20 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow public read access to the available_dates aggregation
+    match /aggregations/available_dates {
+      allow read: if true;
+    }
+
+    // Allow public read access to individual games
+    match /games/{gameId} {
+      allow read: if true;
+    }
+
+    // Default deny all other read/write access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
