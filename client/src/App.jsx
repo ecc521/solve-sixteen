@@ -227,7 +227,7 @@ function App() {
         {/* Solved Groups */}
         <div className="solved-area" style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {solvedGroups.map((group, i) => (
-            <div key={i} className="solved-row" style={{ backgroundColor: getCategoryColor(group.category) }}>
+            <div key={i} className="solved-row">
               <div className="solved-title">{group.category}</div>
               <div className="solved-words">{group.items.join(', ')}</div>
             </div>
@@ -312,13 +312,6 @@ function SortablePool({ words, onCardClick }) {
       ))}
     </div>
   );
-}
-
-function getCategoryColor(cat) {
-  if (cat === 'DOWNRIGHT') return 'var(--yellow-bg)';
-  if (cat === 'PENNANT') return 'var(--green-bg)';
-  if (cat === 'CIGARETTE BRANDS') return 'var(--blue-bg)';
-  return 'var(--purple-bg)';
 }
 
 export default App;
