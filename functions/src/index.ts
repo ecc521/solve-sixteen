@@ -35,7 +35,6 @@ const DIFF_MAP: { [key: number]: string } = { 0: 'easy', 1: 'medium', 2: 'hard',
 // Helper function to scrape and store game data
 async function scrapeAndStoreGame(dateString: string): Promise<GameData | null> {
     const url = `https://www.nytimes.com/svc/connections/v2/${dateString}.json`;
-    console.log(`Scraping game for ${dateString} from ${url}`);
 
     try {
         const response = await axios.get<NYTResponse>(url);
@@ -84,7 +83,7 @@ async function scrapeAndStoreGame(dateString: string): Promise<GameData | null> 
                     });
                 }
             });
-            console.log(`Successfully stored game for ${dateString}`);
+
             return gameData;
         } else {
             console.error('NYT response status not OK:', data);
