@@ -9,7 +9,9 @@ const db = admin.firestore();
 
 interface Word {
     id: string;
-    text: string;
+    text?: string;
+    imageUrl?: string;
+    imageAlt?: string;
     category: string;
     difficulty: string;
 }
@@ -22,7 +24,7 @@ interface GameData {
 
 interface NYTCategory {
     title: string;
-    cards: { content: string }[];
+    cards: { content?: string; image_url?: string; image_alt_text?: string }[];
 }
 
 interface NYTResponse {
@@ -49,12 +51,22 @@ async function scrapeAndStoreGame(dateString: string): Promise<GameData | null> 
                 const categoryName = cat.title;
 
                 cat.cards.forEach((card, cardIndex) => {
-                    transformedWords.push({
+                    const word: Word = {
                         id: `${index}-${cardIndex}`, // Simple ID logic
-                        text: card.content,
                         category: categoryName,
                         difficulty: difficulty
-                    });
+                    };
+
+                    if (card.content) {
+                        word.text = card.content;
+                    } else if (card.image_url) {
+                        word.imageUrl = card.image_url;
+                        if (card.image_alt_text) {
+                            word.imageAlt = card.image_alt_text;
+                        }
+                    }
+
+                    transformedWords.push(word);
                 });
             });
 
