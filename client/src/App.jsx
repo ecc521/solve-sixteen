@@ -247,6 +247,8 @@ function App() {
                   key={wordId}
                   id={wordId}
                   text={getWord(wordId)?.text}
+                  imageUrl={getWord(wordId)?.imageUrl}
+                  imageAlt={getWord(wordId)?.imageAlt}
                   category={getWord(wordId)?.category}
                 />
               ) : null}
@@ -290,6 +292,8 @@ function App() {
             <WordCard
               id={activeId}
               text={getWord(activeId)?.text}
+              imageUrl={getWord(activeId)?.imageUrl}
+              imageAlt={getWord(activeId)?.imageAlt}
               isOverlay
             />
           ) : null}
@@ -307,7 +311,7 @@ function SortablePool({ words, onCardClick }) {
     <div ref={setNodeRef} style={{ display: 'contents' }}>
       {words.map(w => (
         <div key={w.id} className="pool-slot" style={{ height: '64px', width: '100%' }} onClick={() => onCardClick(w.id)}>
-          <WordCard id={w.id} text={w.text} category={w.category} />
+          <WordCard id={w.id} text={w.text} imageUrl={w.imageUrl} imageAlt={w.imageAlt} category={w.category} />
         </div>
       ))}
     </div>
