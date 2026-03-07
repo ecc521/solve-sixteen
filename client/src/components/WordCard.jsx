@@ -2,10 +2,10 @@ import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 
-export function WordCard({ id, text, category, isOverlay }) {
+export function WordCard({ id, text, imageUrl, imageAlt, category, isOverlay }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: id,
-        data: { text, category }
+        data: { text, imageUrl, imageAlt, category }
     });
 
     const style = {
@@ -33,7 +33,16 @@ export function WordCard({ id, text, category, isOverlay }) {
 
     return (
         <div ref={setNodeRef} style={style} {...listeners} {...attributes} className="word-card">
-            {text}
+            {imageUrl ? (
+                <img
+                    src={imageUrl}
+                    alt={imageAlt || 'Image'}
+                    draggable="false"
+                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                />
+            ) : (
+                text
+            )}
         </div>
     );
 }
