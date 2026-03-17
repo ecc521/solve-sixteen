@@ -19,7 +19,6 @@ interface Word {
 interface GameData {
     date: string;
     words: Word[];
-    originalData: any;
 }
 
 interface NYTCategory {
@@ -72,8 +71,7 @@ async function scrapeAndStoreGame(dateString: string): Promise<GameData | null> 
 
             const gameData: GameData = {
                 date: dateString,
-                words: transformedWords,
-                originalData: data
+                words: transformedWords
             };
 
             // Store in Firestore
