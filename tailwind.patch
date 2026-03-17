@@ -1,0 +1,23 @@
+diff --git a/client/src/components/Slot.jsx b/client/src/components/Slot.jsx
+index d518664..51a915d 100644
+--- a/client/src/components/Slot.jsx
++++ b/client/src/components/Slot.jsx
+@@ -13,15 +13,10 @@ export function Slot({ id, children, onClick }) {
+             onClick={onClick}
+             className={twMerge(
+                 "slot",
+-                "w-full h-16 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-400 transition-colors",
+-                isOver ? "bg-green-100 border-green-500" : ""
++                "w-full h-16 rounded-lg flex items-center justify-center transition-colors box-border",
++                children ? "border-none" : "border-2 border-dashed border-[#ccc]",
++                isOver ? "bg-[#e6f4ea]" : (children ? "bg-transparent" : "bg-[#f0f0f0]")
+             )}
+-            style={{
+-                height: '64px', // Force height to prevent collapse
+-                backgroundColor: isOver ? '#e6f4ea' : (children ? 'transparent' : '#f0f0f0'),
+-                border: children ? 'none' : '2px dashed #ccc',
+-                boxSizing: 'border-box'
+-            }}
+         >
+             {children}
+         </div>
