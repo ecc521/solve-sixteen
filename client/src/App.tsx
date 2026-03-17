@@ -1,31 +1,48 @@
-import { useState, useEffect } from 'react';
-import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor, useDroppable } from '@dnd-kit/core';
+import { useState, useEffect, useMemo } from 'react';
+import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor, useDroppable, DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { doc, getDoc } from "firebase/firestore";
 import './styles/index.css';
 
+// @ts-ignore
 import { db } from './firebase';
+// @ts-ignore
 import Slot from './components/Slot';
+// @ts-ignore
 import WordCard from './components/WordCard';
+// @ts-ignore
 import { shuffleArray } from './utils';
 import faviconSvg from './assets/favicon.svg';
 
+export interface Word {
+  id: string;
+  text: string;
+  category?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+}
+
+export interface SolvedGroup {
+  category: string;
+  items: string[];
+}
+
 function App() {
-  // words: All words definition match from server
-  const [allWords, setAllWords] = useState([]);
+  // words: All words definition match from server, indexed by word id for O(1) lookup
+  const [allWords, setAllWords] = useState<Record<string, Word>>({});
 
   // gridState: Array of 16 slots. contains wordId or null.
-  const [gridState, setGridState] = useState(Array(16).fill(null));
+  const [gridState, setGridState] = useState<(string | null)[]>(Array(16).fill(null));
 
   // poolState: Array of wordIds currently in the pool.
-  const [poolState, setPoolState] = useState([]);
+  const [poolState, setPoolState] = useState<string[]>([]);
 
   // solvedGroups: Array of solved categories
-  const [solvedGroups, setSolvedGroups] = useState([]);
+  const [solvedGroups, setSolvedGroups] = useState<SolvedGroup[]>([]);
 
-  const [activeId, setActiveId] = useState(null);
-  const [message, setMessage] = useState('');
-  const [availableDates, setAvailableDates] = useState([]);
-  const [selectedDate, setSelectedDate] = useState('');
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [message, setMessage] = useState<string>('');
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string>('');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -68,8 +85,13 @@ function App() {
 
         if (docSnap.exists()) {
           const gameData = docSnap.data();
-          const words = gameData.words || [];
-          setAllWords(words);
+          const words: Word[] = gameData.words || [];
+          
+          const wordsRecord: Record<string, Word> = {};
+          words.forEach((w) => {
+            wordsRecord[w.id] = w;
+          });
+          setAllWords(wordsRecord);
 
           // Initially all words are in the pool
           const ids = words.map(w => w.id);
@@ -81,7 +103,7 @@ function App() {
           setMessage('');
         } else {
           console.error("Game not found for date:", selectedDate);
-          setAllWords([]);
+          setAllWords({});
         }
       } catch (error) {
         console.error("Failed to fetch words:", error);
@@ -91,21 +113,29 @@ function App() {
     fetchGame();
   }, [selectedDate]);
 
-  const getWord = (id) => allWords.find(w => w.id === id);
+  const getWord = (id: string) => allWords[id];
+
+  const poolWords = useMemo(() => {
+    return poolState.reduce((acc: Word[], id: string) => {
+      const word = getWord(id);
+      if (word) acc.push(word);
+      return acc;
+    }, []);
+  }, [poolState, allWords]);
 
   // Drag Handlers
-  const handleDragStart = (event) => {
-    setActiveId(event.active.id);
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(String(event.active.id));
   };
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
 
     if (!over) return;
 
-    const wordId = active.id;
-    const overId = over.id; // 'slot-X' or 'pool'
+    const wordId = String(active.id);
+    const overId = String(over.id); // 'slot-X' or 'pool'
 
     // Determine Source
     const sourceIndex = gridState.indexOf(wordId);
@@ -158,7 +188,7 @@ function App() {
   };
 
   // Click to move logic
-  const handleCardClick = (wordId) => {
+  const handleCardClick = (wordId: string) => {
     // If in pool -> move to first empty slot
     // If in grid -> move to pool
     const gridIndex = gridState.indexOf(wordId);
@@ -270,7 +300,7 @@ function App() {
               padding: '1rem 0 0 0',
             }}
           >
-            <SortablePool words={poolState.map(id => getWord(id)).filter(Boolean)} onCardClick={handleCardClick} />
+            <SortablePool words={poolWords} onCardClick={handleCardClick} />
           </div>
         )}
 
@@ -280,7 +310,7 @@ function App() {
           <button onClick={handleSubmit}>Submit Rows</button>
           <button onClick={() => {
             // Return all to pool
-            const idsInGrid = gridState.filter(Boolean);
+            const idsInGrid = gridState.filter((id): id is string => Boolean(id));
             // Only move known valid IDs, ignore nulls
             setPoolState([...poolState, ...idsInGrid]);
             setGridState(Array(16).fill(null));
@@ -305,7 +335,7 @@ function App() {
 
 // Separate component for Pool to useDroppable or just be a container
 // For drag BACK to pool, the pool needs to be a droppable zone.
-function SortablePool({ words, onCardClick }) {
+function SortablePool({ words, onCardClick }: { words: Word[], onCardClick: (id: string) => void }) {
   const { setNodeRef } = useDroppable({ id: 'pool-area' });
   return (
     <div ref={setNodeRef} style={{ display: 'contents' }}>
@@ -318,7 +348,7 @@ function SortablePool({ words, onCardClick }) {
   );
 }
 
-function getCategoryColor(cat) {
+function getCategoryColor(cat: string) {
   if (cat === 'DOWNRIGHT') return 'var(--yellow-bg)';
   if (cat === 'PENNANT') return 'var(--green-bg)';
   if (cat === 'CIGARETTE BRANDS') return 'var(--blue-bg)';
