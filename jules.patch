@@ -1,0 +1,22 @@
+diff --git a/functions/src/index.ts b/functions/src/index.ts
+index 54c8b43..22e1293 100644
+--- a/functions/src/index.ts
++++ b/functions/src/index.ts
+@@ -19,7 +19,6 @@ interface Word {
+ interface GameData {
+     date: string;
+     words: Word[];
+-    originalData: any;
+ }
+ 
+ interface NYTCategory {
+@@ -72,8 +71,7 @@ async function scrapeAndStoreGame(dateString: string): Promise<GameData | null>
+ 
+             const gameData: GameData = {
+                 date: dateString,
+-                words: transformedWords,
+-                originalData: data
++                words: transformedWords
+             };
+ 
+             // Store in Firestore
