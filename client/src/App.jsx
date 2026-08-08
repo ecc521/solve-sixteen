@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor, useDroppable } from '@dnd-kit/core';
-import { doc, getDoc } from "firebase/firestore";
 import './styles/index.css';
 
-import { db } from './firebase';
+import { getAvailableDates, getGame } from './api';
 import Slot from './components/Slot';
 import WordCard from './components/WordCard';
 import { shuffleArray } from './utils';
@@ -33,22 +32,13 @@ function App() {
   );
 
   useEffect(() => {
-    // Fetch available dates from Firestore
+    // Fetch available dates from the API (already reverse chronological)
     async function fetchDates() {
       try {
-        const docRef = doc(db, "aggregations", "available_dates");
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data().dates || [];
-          // Sort reverse chronological
-          data.sort().reverse();
-          setAvailableDates(data);
-          if (data.length > 0) {
-            setSelectedDate(data[0]); // Default to most recent
-          }
-        } else {
-          console.error("No available dates found.");
+        const dates = await getAvailableDates();
+        setAvailableDates(dates);
+        if (dates.length > 0) {
+          setSelectedDate(dates[0]); // Default to most recent
         }
       } catch (error) {
         console.error("Failed to fetch available dates:", error);
@@ -60,31 +50,23 @@ function App() {
   useEffect(() => {
     if (!selectedDate) return;
 
-    // Fetch words for selected date from Firestore
+    // Fetch words for selected date from the API
     async function fetchGame() {
       try {
-        const docRef = doc(db, "games", selectedDate);
-        const docSnap = await getDoc(docRef);
+        const words = await getGame(selectedDate);
+        setAllWords(words);
 
-        if (docSnap.exists()) {
-          const gameData = docSnap.data();
-          const words = gameData.words || [];
-          setAllWords(words);
-
-          // Initially all words are in the pool
-          const ids = words.map(w => w.id);
-          const shuffled = shuffleArray(ids);
-          setPoolState(shuffled);
-          // Reset grid and solved groups
-          setGridState(Array(16).fill(null));
-          setSolvedGroups([]);
-          setMessage('');
-        } else {
-          console.error("Game not found for date:", selectedDate);
-          setAllWords([]);
-        }
+        // Initially all words are in the pool
+        const ids = words.map(w => w.id);
+        const shuffled = shuffleArray(ids);
+        setPoolState(shuffled);
+        // Reset grid and solved groups
+        setGridState(Array(16).fill(null));
+        setSolvedGroups([]);
+        setMessage('');
       } catch (error) {
         console.error("Failed to fetch words:", error);
+        setAllWords([]);
       }
     }
 
@@ -227,7 +209,7 @@ function App() {
         {/* Solved Groups */}
         <div className="solved-area" style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {solvedGroups.map((group, i) => (
-            <div key={i} className="solved-row" style={{ backgroundColor: getCategoryColor(group.category) }}>
+            <div key={i} className="solved-row" style={{ backgroundColor: getDifficultyColor(group.difficulty) }}>
               <div className="solved-title">{group.category}</div>
               <div className="solved-words">{group.items.join(', ')}</div>
             </div>
@@ -318,11 +300,18 @@ function SortablePool({ words, onCardClick }) {
   );
 }
 
-function getCategoryColor(cat) {
-  if (cat === 'DOWNRIGHT') return 'var(--yellow-bg)';
-  if (cat === 'PENNANT') return 'var(--green-bg)';
-  if (cat === 'CIGARETTE BRANDS') return 'var(--blue-bg)';
-  return 'var(--purple-bg)';
+// Connections colors are fixed per difficulty tier, not per category. Keying off
+// the category name only ever matched one specific puzzle, so every other
+// category fell through to purple. Difficulty comes from the API on every word.
+const DIFFICULTY_COLORS = {
+  easy: 'var(--yellow-bg)',
+  medium: 'var(--green-bg)',
+  hard: 'var(--blue-bg)',
+  tricky: 'var(--purple-bg)',
+};
+
+function getDifficultyColor(difficulty) {
+  return DIFFICULTY_COLORS[difficulty] || 'var(--card-bg)';
 }
 
 export default App;

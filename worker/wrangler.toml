@@ -1,0 +1,15 @@
+name = "solve-sixteen-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-08"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "solve-sixteen"
+database_id = "fec85c35-6d1e-488a-a4ac-861dc933b340"
+
+# Cloudflare cron is UTC-only and does not follow DST, so we run twice.
+# 06:00 UTC is 00:00/01:00 in America/New_York; 12:00 UTC is the retry.
+# The scrape is idempotent, so a second run costs one fetch and nothing else.
+[triggers]
+crons = ["0 6 * * *", "0 12 * * *"]

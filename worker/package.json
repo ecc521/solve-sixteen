@@ -1,0 +1,17 @@
+{
+  "name": "solve-sixteen-worker",
+  "description": "Cloudflare Worker: daily NYT Connections scrape + read API",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "schema": "wrangler d1 execute solve-sixteen --remote --file=./schema.sql",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260730.1",
+    "typescript": "^5.0.0",
+    "wrangler": "^4.100.0"
+  }
+}
