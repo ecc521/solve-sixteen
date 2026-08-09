@@ -23,7 +23,7 @@ day's puzzle in D1. The client is fully static and reads two endpoints:
 
 Every scrape stores both the transformed words and the raw feed response, so
 nothing the feed sends is discarded. Bulk puzzle exports are kept out of this
-repository on purpose — see [worker/data/](worker/data/).
+repository on purpose and live only in D1.
 
 ## Development
 

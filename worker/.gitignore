@@ -1,3 +1,7 @@
 node_modules
 .wrangler
 .dev.vars
+
+# Local puzzle exports. Bulk NYT content, including the category titles this
+# project otherwise declines to surface — kept on disk, never committed.
+data/
