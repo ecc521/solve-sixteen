@@ -16,6 +16,9 @@ interface NYTCategory {
     cards: { content?: string; image_url?: string; image_alt_text?: string }[];
 }
 
+// The live feed also carries `editor`, `id` and `print_date`. Only the fields
+// used by the transform are declared, but the whole payload is persisted to
+// original_data verbatim, so nothing the feed sends is discarded.
 interface NYTResponse {
     status: string;
     categories: NYTCategory[];
@@ -100,9 +103,13 @@ async function scrapeAndStore(env: Env, date: string): Promise<Word[] | null> {
         }
 
         await env.DB.prepare(
-            `INSERT INTO games (date, words, updated_at) VALUES (?, ?, datetime('now'))
-             ON CONFLICT(date) DO UPDATE SET words = excluded.words, updated_at = excluded.updated_at`
-        ).bind(date, JSON.stringify(words)).run();
+            `INSERT INTO games (date, words, original_data, updated_at)
+             VALUES (?, ?, ?, datetime('now'))
+             ON CONFLICT(date) DO UPDATE SET
+                 words = excluded.words,
+                 original_data = excluded.original_data,
+                 updated_at = excluded.updated_at`
+        ).bind(date, JSON.stringify(words), JSON.stringify(data)).run();
 
         return words;
     } catch (error) {
@@ -143,7 +150,8 @@ export default {
             return json({ error: 'method not allowed' }, 405);
         }
 
-        const path = new URL(request.url).pathname.replace(/\/+$/, '');
+        const url = new URL(request.url);
+        const path = url.pathname.replace(/\/+$/, '');
 
         if (path === '' || path === '/api') {
             return json({
@@ -164,17 +172,27 @@ export default {
         const match = path.match(/^\/api\/games\/(\d{4}-\d{2}-\d{2})$/);
         if (match) {
             const date = match[1];
+            // The raw feed payload roughly triples the response, so it is
+            // opt-in via ?raw=1 and the game client never pays for it.
+            const wantRaw = url.searchParams.get('raw') === '1';
+
             const row = await env.DB.prepare(
-                `SELECT words FROM games WHERE date = ?`
-            ).bind(date).first<{ words: string }>();
+                wantRaw
+                    ? `SELECT words, original_data FROM games WHERE date = ?`
+                    : `SELECT words FROM games WHERE date = ?`
+            ).bind(date).first<{ words: string; original_data?: string | null }>();
 
             if (!row) {
                 return json({ error: 'not found', date }, 404);
             }
+
+            const body: Record<string, unknown> = { date, words: JSON.parse(row.words) };
+            if (wantRaw) {
+                body.originalData = row.original_data ? JSON.parse(row.original_data) : null;
+            }
+
             // Past puzzles never change, so they cache hard.
-            return json({ date, words: JSON.parse(row.words) }, 200, {
-                'Cache-Control': 'public, max-age=86400',
-            });
+            return json(body, 200, { 'Cache-Control': 'public, max-age=86400' });
         }
 
         return json({ error: 'not found' }, 404);

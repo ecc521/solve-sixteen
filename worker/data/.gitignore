@@ -1,0 +1,5 @@
+# Puzzle exports are deliberately NOT committed — they are bulk NYT puzzle
+# content, including the category titles this project otherwise declines to
+# surface. Keep them local; D1 is the store of record.
+*.json
+*.sql

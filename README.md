@@ -17,6 +17,13 @@ day's puzzle in D1. The client is fully static and reads two endpoints:
 
 - `GET /api/dates` — playable dates, newest first
 - `GET /api/games/{YYYY-MM-DD}` — the 16 words for that date
+- `GET /api/games/{YYYY-MM-DD}?raw=1` — same, plus `originalData`, the NYT feed
+  response verbatim (per-card `position`, `editor`, `id`, `print_date`). Opt-in
+  because it roughly doubles the payload; the game client never requests it.
+
+Every scrape stores both the transformed words and the raw feed response, so
+nothing the feed sends is discarded. Bulk puzzle exports are kept out of this
+repository on purpose — see [worker/data/](worker/data/).
 
 ## Development
 
