@@ -1,4 +1,4 @@
-name: Functions Tests
+name: Worker Typecheck
 
 on:
   push:
@@ -9,19 +9,19 @@ on:
       - main
 
 jobs:
-  test:
+  typecheck:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
 
       - name: Install Dependencies
-        run: cd functions && npm ci
+        run: cd worker && npm ci
 
-      - name: Run Tests
-        run: cd functions && npm test
+      - name: Typecheck
+        run: cd worker && npm run typecheck

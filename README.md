@@ -1,15 +1,29 @@
 # Solve Sixteen
 
-Solve Sixteen is a React-based web application designed for those who prefer to play NYT Connections in hard mode - solving all 4 rows at once. 
+Solve Sixteen is a React-based web application designed for those who prefer to play NYT Connections in hard mode - solving all 4 rows at once.
 
-- Due to copyright constraints, this project does NOT validate your picks. It is purely intended as a thought organier. You must visit the official NYT website to check your answers and see category names. 
+- Due to copyright constraints, this project does NOT validate your picks. It is purely intended as a thought organizer. You must visit the official NYT website to check your answers and see category names.
+
+## Architecture
+
+| Piece | Where it runs |
+| --- | --- |
+| `client/` | React + Vite, deployed to GitHub Pages |
+| `worker/` | Cloudflare Worker: daily scrape + read API |
+| Puzzle storage | Cloudflare D1 (`solve-sixteen`) |
+
+The Worker scrapes the NYT Connections feed on a cron trigger and stores each
+day's puzzle in D1. The client is fully static and reads two endpoints:
+
+- `GET /api/dates` — playable dates, newest first
+- `GET /api/games/{YYYY-MM-DD}` — the 16 words for that date
 
 ## Development
 
 ### Prerequisites
 
 -   Node.js (v24+)
--   Firebase CLI (`npm install -g firebase-tools`)
+-   Wrangler (`npm install -g wrangler`), authenticated with `wrangler login`
 
 ### Local Setup
 
@@ -22,46 +36,60 @@ Solve Sixteen is a React-based web application designed for those who prefer to 
 2.  **Install dependencies:**
     ```bash
     cd client && npm install
-    cd ../functions && npm install
+    cd ../worker && npm install
     ```
 
-3.  **Configure Environment Variables:**
-    In the `client/` directory, create a `.env` file based on `.env.example` and fill in your Firebase configuration:
-    ```bash
-    cp client/.env.example client/.env
-    ```
-
-4.  **Start the Firebase Emulators:**
-    This will automatically build the TypeScript functions and start the local backend.
-    ```bash
-    firebase emulators:start
-    ```
-    *Note: The functions emulator typically runs on `http://localhost:5001`.*
-
-5.  **Start the Frontend:**
-    In a new terminal window:
+3.  **Start the frontend:**
     ```bash
     cd client
     npm run dev
     ```
-     The application will be available at `http://localhost:5173`. By default, it is configured to talk to the local Firebase Emulators.
+    Available at `http://localhost:5173/solve-sixteen/`. By default it talks to
+    the deployed Worker, so no configuration is needed to develop the UI.
 
-## Firebase Functions
+### Working on the Worker
 
-The backend is built with Firebase Cloud Functions using Node.js 24 and TypeScript.
+Run it locally against the real D1 database:
 
-See [README.md](functions/README.md) in the functions subdirectory for more details. 
+```bash
+cd worker
+npm run dev
+```
+
+Point the client at it by creating `client/.env` from `client/.env.example` and
+setting `VITE_API_BASE=http://localhost:8787`.
+
+To exercise the scheduled scrape without waiting for the cron:
+
+```bash
+wrangler dev --remote --test-scheduled
+curl "http://localhost:8787/__scheduled?cron=0+6+*+*+*"
+```
+
+The scrape is idempotent — it refreshes today and backfills any of the previous
+three days missing from D1, so a failed run self-heals on the next trigger.
 
 ## Deployment
 
-The frontend is deployed to GitHub Pages via a GitHub Actions workflow.
+**Client** — deployed to GitHub Pages by `.github/workflows/deploy-client.yml`
+on every push to `main`. No repository secrets are required; `VITE_API_BASE`
+falls back to the deployed Worker URL if unset.
 
-### Firebase Configuration
+**Worker** — deployed manually:
 
-To ensure the production app can communicate with Firebase, you must set up repository secrets for the build process.
+```bash
+cd worker
+npm run deploy
+```
 
-1.  Go to your GitHub Repository.
-2.  Navigate to **Settings** > **Secrets and variables** > **Actions**.
-3.  Click **New repository secret** for each variable listed in `client/.env.example`.
+Schema changes go through `worker/schema.sql`:
 
-These secrets are injected into the build process by the `.github/workflows/deploy-client.yml` workflow.
+```bash
+npm run schema
+```
+
+### Backing up puzzle data
+
+```bash
+wrangler d1 export solve-sixteen --remote --output=backup.sql
+```
